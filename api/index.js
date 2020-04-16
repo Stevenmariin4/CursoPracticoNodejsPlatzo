@@ -1,40 +1,26 @@
-const express = require("express");
-const config = require("./config");
-const user = require("./user/network");
-const auth = require("./auth/network");
-const bodyparse = require("body-parser");
-const app = express();
-app.use(bodyparse.json());
-const expressSwagger = require("express-swagger-generator")(app);
+const express = require('express');
+const bodyParser = require('body-parser');
 
-let options = {
-  swaggerDefinition: {
-    info: {
-      description: "Curso de platzi nodejs",
-      title: "Platzi Server",
-      version: "1.0.0"
-    },
-    host: "localhost:3000",
-    basePath: "/api",
-    produces: ["application/json"],
-    schemes: ["http", "https"],
-    securityDefinitions: {
-      JWT: {
-        type: "apiKey",
-        in: "header",
-        name: "Authorization",
-        description: ""
-      }
-    }
-  },
-  basedir: __dirname, //app absolute path
-  files: ["./user/network.js", "./auth/network.js"] //Path to the API handle folder
-};
-expressSwagger(options);
-//Routes
-app.use("/api/user", user);
-app.use("/api/auth", auth);
-//inicializar el servidor
+const swaggerUi = require('swagger-ui-express');
+
+const config = require('../config.js');
+const user = require('./components/user/network');
+const auth = require('./components/auth/network');
+const errors = require('../network/errors');
+
+const app = express();
+
+app.use(bodyParser.json());
+
+const swaggerDoc = require('./swagger.json');
+
+// ROUER
+app.use('/api/user', user);
+app.use('/api/auth', auth);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+
+app.use(errors);
+
 app.listen(config.api.port, () => {
-  console.log("Api escuchando ne el puerto", config.api.port);
+    console.log('Api escuchando en el puerto ', config.api.port);
 });
